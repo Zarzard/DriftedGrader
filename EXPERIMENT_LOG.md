@@ -301,6 +301,79 @@ blindness (D1 flat-ish while regret rises) and TP4 identifiability remain to be
 measured but are untouched by this. → Brought to user as a "stop and re-plan the
 mechanism" decision (plan §5 Stage A kill).
 
+### 2026-07-30 — Detectability deepening: 'breadth' hypothesis CORRECTED
+
+Built analysis/run_detectability.py. First pass (single-sample anchor labels)
+suggested power rises with anchor breadth (0.12→0.60) — but that was SAMPLING
+NOISE, not structure. With 20 re-elicitations per anchor (40 seeds, λ=0.4):
+- true structural signal is LARGE for ALL breadths (narrow β=0.05: 0.165;
+  uniform: 0.194 — only ~15% weaker for narrow).
+- detection power ~1.0 for ALL fixed anchor breadths (narrow 0.97, rest 1.00).
+- true_sig_NONE = 0.000 exactly (fixed anchors, static grader → no false signal).
+
+**Corrected finding:** breadth is NOT the axis. The real distinction is FIXED vs
+CO-MOVING queries. Any fixed anchor set re-elicited over time detects drift
+trivially (it does not move with the grader). The standard monitor (held-out
+accuracy) is blind ONLY because it re-samples ON-POLICY comparisons that co-move
+with the drift AND refits the RM to track them (Stage B: D1 rises). So:
+  D1 (on-policy, refit-tracked): blind, even rises.  [Stage B]
+  D5 (fixed anchors, re-elicited): detects, power ~1.0.  [here]
+Clean and correct, but modest/obvious. Breadth matters only marginally via SNR.
+
+### 2026-07-30 — Stage D identifiability prototype: WEAKLY identifiable, not impossible
+
+Held-out NLL(M-static) − NLL(M-drift oracle), 20 seeds, CIs:
+- on-policy: margin 0.002–0.016 nats (smallest at high pressure β=0.02: 0.002–0.004)
+- uniform:   margin 0.008–0.022 nats
+- ALL CIs exclude 0 → drift IS statistically identifiable, but the margin is tiny
+  (a few % of the ~0.5-nat signal). On-policy hides drift ~2× vs uniform; higher
+  pressure (concentrated policy) hides it further (co-moving query distribution).
+
+So the strong impossibility claim ("no preference-only monitor can detect drift")
+does NOT hold: a monitor with enough data detects the drift (we did, at 0.003 nats).
+The honest result: drift is HARD-but-not-impossible to detect from preferences, and
+detectability depends on the QUERY DISTRIBUTION (on-policy + high pressure hide it).
+
+### OVERALL after exhaustive testing: every dramatic claim softened
+- Over-opt: coverage-gated, absent in real control PbRL (user PEBBLE null; REBEL).
+- Endogeneity/co-adaptation: null (8 tests).
+- Held-out-accuracy blindness: real but blindness to a coverage-artifact over-opt.
+- Drift identifiability: weakly identifiable, not an impossibility theorem.
+The clearest POSITIVE, novel, actionable signal: **detectability of drift depends on
+the query distribution — on-policy preference queries hide drift; broad/off-policy
+queries surface it.** (Argues for anchored/off-policy re-elicitation to monitor drift.)
+Honest contribution is deflationary + the query-distribution insight, at CPU scale.
+
+### 2026-07-30 — Deep literature dive → REFRAME to drift IDENTIFIABILITY
+
+Manual fetch+verify of the closest papers (deep-research skill unavailable):
+- **Iterated RLHF over-opt (arXiv 2505.18126)**: LLMs, static gold RM, closed-loop.
+  Confirms over-opt at high KL; does NOT study drift or detectability; does NOT
+  separate endogenous co-adaptation from non-stationarity.
+- **REBEL (2312.14436)**: DMC Walker only. Does NOT show Gao-style over-opt (no
+  true-reward decline) — only underperformance (~500/1000, curves rise together).
+  Confirms the user's point: "reward over-optimisation" in control PbRL is used
+  loosely; the proxy↑/true↓ Goodhart curve is NOT demonstrated.
+- **NS-DPO (2407.18676)**: temporal drift, method = discount old data. Explicitly
+  does NOT address whether drift is identifiable/observable from preferences alone
+  ("a critical gap"). No detection, no endogenous drift.
+
+**Novelty verdict:** over-opt (Gao; iterated-RLHF), drift-handling (NS-DPO),
+performative/closed-loop (Mandal), monitor-limits — all have strong prior work.
+The GENUINELY OPEN gap: **is preference drift identifiable/detectable from
+comparison data alone?** NS-DPO leaves it open; our VR result predicts NO (drift
+moves along the least-constrained directions).
+
+**REFRAMED PAPER (new spine):**
+1. Over-opt is coverage-gated & empirically ABSENT in control PbRL (REBEL + user's
+   PEBBLE null); our toy shows the coverage threshold. Scoping/myth-bust.
+2. Preference drift hides in the directions comparisons least constrain (VR<1). —have.
+3. ⇒ Drift is UNIDENTIFIABLE from preference data: a static grader fits drifted
+   comparisons ~as well as the true drift model (Stage D — build now). Impossibility.
+4. ⇒ held-out accuracy is blind (rises while true reward degrades). —have (Stage B).
+5. Endogenous co-adaptation adds nothing beyond non-stationarity. —have (8 nulls).
+Contribution = the LIMITS of preference-only monitoring under drift, not over-opt.
+
 ### 2026-07-30 — Stage B blindness (TP2): CONFIRMED, stronger than H4 predicted
 
 MLP RM, closed loop, 8 seeds, binned trajectories:
