@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+runs/
+*.parquet
+.pytest_cache/
+figs/
