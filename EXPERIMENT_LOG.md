@@ -301,6 +301,39 @@ blindness (D1 flat-ish while regret rises) and TP4 identifiability remain to be
 measured but are untouched by this. → Brought to user as a "stop and re-plan the
 mechanism" decision (plan §5 Stage A kill).
 
+### 2026-07-30 — DECISIVE: SAT-vs-REPLAY with MLP RM — endogeneity robustly NULL
+
+The correctly-targeted test of the D×F closed-loop hypothesis (user's chain):
+does the closed loop cause MORE over-opt than a REPLAYED drift, with a non-linear
+RM? Earlier SAT-vs-REPLAY was linear-only (no F). 8 seeds, 2nd-half regret, paired:
+
+| RM | lam | R_SAT | R_REPLAY | diff [95% CI] | VR_SAT | VR_REPLAY |
+|----|-----|-------|----------|---------------|--------|-----------|
+| mlp | 0.1 | 0.235 | 0.235 | −0.015 [−0.039,+0.034] | 0.953 | 1.063 |
+| mlp | 0.4 | 0.266 | 0.266 | −0.002 [−0.012,+0.013] | 1.135 | 1.151 |
+| linear | 0.1 | 0.024 | 0.028 | −0.004 [−0.007,−0.000] | 0.777 | 0.807 |
+| linear | 0.4 | 0.040 | 0.038 | +0.002 [+0.001,+0.003] | 1.304 | 1.331 |
+
+Reading:
+- **SAT VR < REPLAY VR everywhere** — the closed loop DOES steer marginally more
+  into the comparison blind spot (the (D) half of the chain is real, measurable).
+- **But SAT regret ≈ REPLAY regret with the MLP** (diff CI includes 0 at both λ).
+  The extra alignment (~0.03-0.11 in VR) does NOT convert into extra over-opt.
+- Linear diffs are ±0.002-0.004 — statistically detectable, practically nil.
+
+**Conclusion (final, decisive):** over-optimisation is caused by (non-stationary
+drift moves the target) × (non-linear RM over-generalises), present EQUALLY under
+replayed drift. The endogenous/closed-loop coupling is NOT the cause. Endogeneity
+is null across every test: A_t, linear SAT-vs-REPLAY, plain tandem, forked tandem,
+MDP fitted-Q bootstrapping, and now MLP SAT-vs-REPLAY. Fixed a runner bug
+(_psi_snapshot assumed .psi; MLPBT has none) found en route.
+
+**The paper (settled):** (1) preference drift + non-linear RM → over-optimisation
+(regret ≫ floor; MLP required, linear the provable clean control); (2) TP2 the
+standard monitor is blind; (3) TP4 identifiability. VR is a real descriptive
+mechanism detail (drift into the data-blind subspace) but NOT closed-loop-specific.
+Endogeneity reported as a clean null (cite Tandem paper: needs bootstrapping (B)).
+
 ### 2026-07-30 — Tandem harness results: over-opt YES (F), endogeneity NULL so far
 
 Built MLPBT (numpy, Adam, warm-start), VR metric, unified fit_buffer(Phi,pairs,y),

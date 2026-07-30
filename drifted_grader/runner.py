@@ -113,12 +113,13 @@ _SAFE = dict(over="raise", divide="raise", invalid="raise", under="ignore")
 
 
 def _psi_snapshot(rm, use_rm: bool) -> list:
-    """Head-0 psi (ensemble) or psi (linear); [] when no RM."""
+    """Head-0 psi (linear ensemble) or psi (linear); [] for MLP / no RM."""
     if not use_rm:
         return []
     if isinstance(rm, EnsembleBT):
-        return rm.heads[0].psi.tolist()
-    return rm.psi.tolist()
+        h = rm.heads[0]
+        return h.psi.tolist() if hasattr(h, "psi") else []
+    return rm.psi.tolist() if hasattr(rm, "psi") else []
 
 
 # --------------------------------------------------------------------------
