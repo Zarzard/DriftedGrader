@@ -301,6 +301,32 @@ blindness (D1 flat-ish while regret rises) and TP4 identifiability remain to be
 measured but are untouched by this. → Brought to user as a "stop and re-plan the
 mechanism" decision (plan §5 Stage A kill).
 
+### 2026-07-30 — Stage B blindness (TP2): CONFIRMED, stronger than H4 predicted
+
+MLP RM, closed loop, 8 seeds, binned trajectories:
+
+SAT λ=0.4: R_t 0.163→0.283 (+0.120) while D1 0.707→0.758 (+0.052). ρ(D1,R)=+0.29.
+NONE λ=0: R_t 0.143→0.176 (+0.033), D1 0.717→0.774. ρ=+0.33.
+
+**The standard monitor is actively MISLEADING, not just blind.** Held-out
+preference accuracy RISES (71%→76%, looks like the RM improving) exactly while true
+regret nearly doubles. Mechanism: D1 is evaluated on ON-POLICY comparisons, and the
+policy visits where the RM is confident; so on-policy accuracy rises by construction
+while the policy exploits the RM's OFF-POLICY errors that D1 never probes. Circular →
+blind.
+
+**H4 reframed by the data.** Pre-registered H4 said no-drift baseline ρ<−0.6
+(accuracy up ↔ regret down, monitor works). FALSE here: on-policy over-optimisation
+breaks the monitor even under NONE (ρ=+0.33). So the honest, STRONGER claim: held-out
+preference accuracy fails to track true reward in the closed loop, under drift AND
+no-drift; drift amplifies the regret 4× (+0.12 vs +0.03). TP2 supported; H4's exact
+decision rule was mis-specified (it assumed on-policy accuracy is a valid monitor,
+which the over-opt result already refutes).
+
+Caveat: drift's marginal regret over the static MLP over-opt floor is modest
+(SAT R̄~0.24 vs NONE ~0.18 at these settings). The blindness is the headline; the
+drift is one amplifier of an over-optimisation the monitor cannot see either way.
+
 ### 2026-07-30 — FULL MDP + bootstrapping build (Stage E): endogeneity STILL null
 
 Built drifted_grader/mdp.py: TabularMDP, value iteration, regret (N7 analog exact:

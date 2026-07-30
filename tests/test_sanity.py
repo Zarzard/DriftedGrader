@@ -301,6 +301,31 @@ def test_reproducibility_byte_identical():
         assert a["R_t"] == b["R_t"] and a["A_t"] == b["A_t"] and a["J_init"] == b["J_init"]
 
 
+def test_mdp_regret_wellposed_and_n7():
+    """MDP: the optimal policy has regret 0 and the worst has regret ~1 (metric
+    well-posed); and a fitted-Q agent GIVEN the true reward drives regret down
+    (N7 analog -- perfect reward -> near-optimal policy)."""
+    from drifted_grader.mdp import (make_mdp, q_star, _q_worst, regret, FittedQ,
+                                     rollout)
+    rng = np.random.default_rng(0)
+    mdp = make_mdp(12, 4, 6, rng, gamma=0.95)
+    g_opt = q_star(mdp, mdp.w0).argmax(1)
+    g_worst = _q_worst(mdp, mdp.w0).argmin(1)
+    assert regret(mdp, mdp.w0, g_opt) < 1e-9, "optimal policy should have 0 regret"
+    assert regret(mdp, mdp.w0, g_worst) > 0.9, "worst policy should have regret ~1"
+    # fitted-Q on TRUE reward (linear) should reduce regret well below random
+    agent = FittedQ(mdp, base="linear", seed=0)
+    r_true = mdp.phi @ mdp.w0
+    S, A, SP = [], [], []
+    arng = np.random.default_rng(1)
+    for _ in range(6):
+        s, a, sp, _, _ = rollout(mdp, agent, eps=0.3, n_ep=6, H=15, rng=arng)
+        S.append(s); A.append(a); SP.append(sp)
+        agent.fit(np.concatenate(S), np.concatenate(A), np.concatenate(SP), r_true,
+                  outer=15)
+    assert regret(mdp, mdp.w0, agent.greedy()) < 0.5, "fitted-Q on true reward failed"
+
+
 def test_numerical_stability_betaT_sweep():
     """Section 7.4: no over/invalid/divide warnings across betaT in {2,5,10,50}."""
     with warnings.catch_warnings():
