@@ -44,6 +44,18 @@ it detects the drift.
   DMC/Metaworld scale (Stage F / PEBBLE) is untested and is the only way to know if
   there is a real-scale phenomenon.
 
+## Robustness of the RM protocol (checked)
+
+The reward model is **inherited (warm-started) across feedback rounds**, not refit
+from scratch — matching PEBBLE (MLP weights + Adam state persist; linear is convex
+so it re-converges to the full-buffer MLE). The closed-loop regret is **flat across
+a 7.5× per-round training budget** (40→300 Adam steps: NONE 0.176→0.176, SAT
+0.288→0.279), so it is genuine, not under-fitting. The persistent no-drift floor
+(~0.18) is on-policy-coverage over-optimization: the MLP's off-policy values are
+unconstrained regardless of training budget because on-policy collection never
+samples those regions — the coverage axis, consistent with PEBBLE's broad-coverage
+null. Stage F (PEBBLE integration, `NoisyPbRL/STAGE_F_DRIFT.md`) is the scale test.
+
 ## Deliverable that stands regardless
 
 `drifted_grader/`: reusable PbRL-under-drift simulator — arms, five drift models
