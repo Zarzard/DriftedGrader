@@ -301,6 +301,30 @@ blindness (D1 flat-ish while regret rises) and TP4 identifiability remain to be
 measured but are untouched by this. → Brought to user as a "stop and re-plan the
 mechanism" decision (plan §5 Stage A kill).
 
+### 2026-07-30 — FULL MDP + bootstrapping build (Stage E): endogeneity STILL null
+
+Built drifted_grader/mdp.py: TabularMDP, value iteration, regret (N7 analog exact:
+optimal-policy regret = 0.0), FittedQ agent (linear + MLP) with TD bootstrapping
+(y = r_hat + gamma max_a' Q(s',a') -- the B factor the Tandem paper needs), MDP
+drift grader (reuses SAT/EXO/REPLAY on (s,a) preferences; RM reused via (s,a)
+flattening), and active/passive + SAT/REPLAY harness. gamma=0.95, eps=0.05
+(coverage gaps), 10 seeds, 2nd-half regret:
+
+- Tandem linear: gap +0.000 [0,0] (init-independent fixed point).
+- Tandem MLP: gap −0.002 [−0.020,+0.000] — passive if anything slightly BETTER. null.
+- SAT vs REPLAY MLP: +0.000 [0,0]. null.
+MLP fitted-Q regret is LOW (0.06) — the agent learns well, so there is little
+over-optimisation to differentiate active/passive. The tandem effect needs the
+severe coverage gaps + high-dim extrapolation of DEEP RL (Atari); a 12-state MDP
+with a modest MLP does not reproduce it. Would require Stage F (PEBBLE/DMC), a
+GPU-scale build beyond CPU-only tabular scope.
+
+**EXHAUSTIVE: 8 independent endogeneity tests, ALL null** — A_t, linear & MLP
+SAT-vs-REPLAY (bandit), plain & forked tandem (bandit), linear & MLP tandem (MDP),
+MLP SAT-vs-REPLAY (MDP). The endogenous co-adaptation claim does not hold at
+CPU-tabular scale, with OR without bootstrapping. Pivot to the core (TP2 blindness,
+TP4 identifiability), which is the paper and is untested.
+
 ### 2026-07-30 — DECISIVE: SAT-vs-REPLAY with MLP RM — endogeneity robustly NULL
 
 The correctly-targeted test of the D×F closed-loop hypothesis (user's chain):
