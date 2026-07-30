@@ -111,6 +111,25 @@ def A_t(u_t: np.ndarray, v_t: np.ndarray) -> float:
     return float(abs(np.dot(u_t, v_t)))
 
 
+def variance_ratio(u_t: np.ndarray, diffs: np.ndarray) -> float:
+    """VR = (u^T C u) / (tr(C)/d), C = D^T D / M  (comparison design matrix).
+
+    Variance of the comparison differences ALONG the drift direction u_t, relative
+    to a random direction (tr C / d). VR < 1 => drift points into LOW-information
+    (blind) directions; null = 1.0. This is the primary mechanism metric: unlike
+    the single-eigenvector A_t, it captures the whole low-variance SUBSPACE, so it
+    does not wash into the null when the blind spot is multi-dimensional.
+    """
+    if u_t is None or diffs is None or len(diffs) == 0:
+        return float("nan")
+    M, d = diffs.shape
+    C = (diffs.T @ diffs) / M
+    denom = np.trace(C) / d
+    if denom < 1e-12:
+        return float("nan")
+    return float((u_t @ C @ u_t) / denom)
+
+
 # --------------------------------------------------------------------------
 # proj_angle: drift vs the RM's structural blind spot (P's row space)
 # --------------------------------------------------------------------------

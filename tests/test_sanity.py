@@ -10,7 +10,7 @@ import numpy as np
 
 from drifted_grader.arms import make_arms
 from drifted_grader.graders import make_grader, DriftNone, DriftSat, DriftScale
-from drifted_grader.reward_models import LinearBT, make_projection
+from drifted_grader.reward_models import LinearBT, MLPBT, make_projection
 from drifted_grader.metrics import policy_from_scores, regret_Rt, A_null
 from drifted_grader.policies import expected_features
 from drifted_grader.runner import run, Config
@@ -93,6 +93,41 @@ def test_P3_corrected_misspecification_overopt():
         f"R_bar not monotone in k: {Rbar_by_k}"
     # misspecified >> correct
     assert Rbar_by_k[3] > 5 * Rbar_by_k[6], f"k=3 not >> k=6: {Rbar_by_k}"
+
+
+def test_P3b_mlp_overoptimises_where_linear_clean():
+    """P3b (Tandem-RL reframe): non-linear FA over-optimises where the correctly-
+    specified linear RM is provably clean. Fixed grader, on-policy collection,
+    regret at high eval pressure: MLP >> linear."""
+    from drifted_grader.graders import sigmoid
+    lin_hi, mlp_hi = [], []
+    for seed in range(5):
+        rng = np.random.default_rng(6000 + seed)
+        arms = make_arms(256, 6, rng); Phi, w0 = arms.Phi, arms.w0
+        pi = policy_from_scores(Phi @ w0, 0.1)                 # collect on-policy
+        i = rng.choice(256, 512, p=pi); j = rng.choice(256, 512, p=pi)
+        mk = i != j; i, j = i[mk], j[mk]
+        p = sigmoid(10.0 * ((Phi @ w0)[i] - (Phi @ w0)[j]))
+        lab = (rng.random(len(i)) < p).astype(float)
+        pairs = np.stack([i, j], 1)
+        lin = LinearBT(6).fit(Phi[i] - Phi[j], lab)
+        mlp = MLPBT(6, hidden=64, steps=400, seed=seed).fit_buffer(Phi, pairs, lab)
+        lin_hi.append(regret_Rt(policy_from_scores(lin.predict(Phi), 0.03), Phi, w0, 0.03)[0])
+        mlp_hi.append(regret_Rt(policy_from_scores(mlp.predict(Phi), 0.03), Phi, w0, 0.03)[0])
+    assert np.mean(lin_hi) < 0.03, f"linear not clean: {np.mean(lin_hi)}"
+    assert np.mean(mlp_hi) > 3 * np.mean(lin_hi), \
+        f"MLP not over-optimising: mlp={np.mean(mlp_hi)} lin={np.mean(lin_hi)}"
+
+
+def test_tandem_linear_gap_zero():
+    """Harness correctness: with a convex LinearBT, the passive learner recovers
+    the same RM as the active (unique optimum), so tandem_gap == 0 exactly. The
+    non-zero gap must come from non-linear FA, not the harness."""
+    from drifted_grader.tandem import run_tandem
+    cfg = Config(drift="SAT", lam=0.4, beta=0.05, d=6, T=25, q=64)
+    rows = run_tandem(cfg, 0, base="linear", tandem="plain")
+    gap = np.max(np.abs([r["tandem_gap"] for r in rows]))
+    assert gap < 1e-9, f"linear tandem gap should be 0, got {gap}"
 
 
 def test_P5_drift_monotonicity_and_simplex():

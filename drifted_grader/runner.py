@@ -62,7 +62,8 @@ class Config:
     beta: float = 0.1            # KL-Gibbs pressure (smaller => more pressure)
     betaT: float = 10.0          # grader inverse temperature (positive!)
     d: int = 6
-    k: int = 3                   # RM projection dim (k<d => misspecified); k>=d full
+    k: int = 6                   # RM projection dim; k>=d => full phi (MLP primary).
+                                 # k<d = structural-misspec ablation (linear only)
     n: int = 256
     T: int = 100
     alpha: float = 0.5
@@ -74,6 +75,8 @@ class Config:
     rm: str = "none"             # none|linear|ensemble
     reg: float = 1e-3
     K: int = 5                   # ensemble heads
+    hidden: int = 64             # MLP hidden units
+    steps: int = 80              # MLP online-refit Adam steps
     kappa: float = 4.0           # DriftScale sharpness
     corr: float = 0.0            # feature-correlation knob
     buffer_regime: str = "all"   # all|recency
@@ -137,7 +140,9 @@ def run(cfg: Config, seed: int, record_w_traj: bool = False,
                          lam=cfg.lam, T=cfg.T, kappa=cfg.kappa, w_traj=replay_w_traj)
 
     use_rm = cfg.rm != "none"
-    rm = make_reward_model(cfg.rm, cfg.d, P=P, K=cfg.K, reg=cfg.reg) if use_rm else None
+    rm = (make_reward_model(cfg.rm, cfg.d, P=P, K=cfg.K, reg=cfg.reg,
+                            hidden=cfg.hidden, steps=cfg.steps)
+          if use_rm else None)
 
     probe_idx = problem_rng.choice(cfg.n, size=min(cfg.n_probe, cfg.n), replace=False)
     anchor_pairs = np.stack([problem_rng.choice(cfg.n, size=cfg.q_anchor),
@@ -188,11 +193,7 @@ def run(cfg: Config, seed: int, record_w_traj: bool = False,
                     vp, vl = buffer_pairs, buffer_labels
                 allp = np.concatenate(vp, axis=0)
                 alll = np.concatenate(vl, axis=0)
-                diffs_buf = Phi[allp[:, 0]] - Phi[allp[:, 1]]
-                if isinstance(rm, EnsembleBT):
-                    rm.fit(diffs_buf, alll.astype(float), agent_rng)
-                else:
-                    rm.fit(diffs_buf, alll.astype(float))
+                rm.fit_buffer(Phi, allp, alll.astype(float), agent_rng)
                 # D1: held-out accuracy on fresh current-grader on-policy pairs
                 ev = sample_pairs(pi, cfg.q_eval, agent_rng)
                 ev_lab = grader.label(ev, agent_rng)
@@ -233,6 +234,7 @@ def run(cfg: Config, seed: int, record_w_traj: bool = False,
                 t=t,
                 R_t=R_t, R_bar_running=float(R_running_sum / (t + 1)),
                 range_t=range_t, A_t=float("nan"), A_null=A_null,
+                VR_t=float("nan"),
                 J_init=J_init, J_final=float("nan"), J_avg=float("nan"),
                 J_proxy=J_proxy,
                 w_dist_from_w0=float(np.linalg.norm(w_t - w0)),
@@ -257,6 +259,7 @@ def run(cfg: Config, seed: int, record_w_traj: bool = False,
             u_t = M.drift_direction(w_t, grader.w)
             row["w_step"] = float(np.linalg.norm(grader.w - w_t))
             row["A_t"] = M.A_t(u_t, v_min) if u_t is not None else float("nan")
+            row["VR_t"] = M.variance_ratio(u_t, diffs_round) if u_t is not None else float("nan")
             row["proj_angle"] = M.proj_angle(u_t, P) if u_t is not None else float("nan")
 
     # ---- post-hoc descriptive reference rewards -------------------------
