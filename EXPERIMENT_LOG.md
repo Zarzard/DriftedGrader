@@ -592,3 +592,27 @@ Because betaT sets the SCALE of the posterior w and coverage compares to V_true 
 the true scale. Implication: the VaR bound needs the grader temperature known to
 ~correctly. The drift experiment holds betaT FIXED and CORRECT (only w_t direction
 drifts on the simplex), so this is a separate documented sensitivity, not a confound.
+
+## 2026-07-31 — Stage P1 (LINEAR posterior coverage under drift): Outcome A + ranking collapse
+
+320 runs (k in {3,6} x lam in {0,0.1,0.4,0.8} x breadth {onpolicy,broad} x 20 seeds),
+posterior-in-loop; deployed pi_t = Gibbs(posterior-mean reward); coverage vs current grader.
+
+- **Marginal coverage ROBUST (HG1/HG2/HG3 all KILLED):** cov stays 0.89-1.00 and
+  RISES (over-covers) under drift; width W_t FALLS -> bound is tight AND covered
+  (healthy quadrant, not dangerous). No marginal coverage collapse anywhere.
+- **BUT ranking validity (Section 4.1, the actual Bayesian-REX use case) COLLAPSES
+  and INVERTS under misspec+drift:** rank_corr(LB, V_true) over the fixed eval set:
+    k=6 (well-spec): 1.00 -> 0.97 (robust under drift)
+    k=3 (misspec):   0.86 -> 0.39 -> 0.09 -> -0.30 as lam 0->0.1->0.4->0.8
+  Needs BOTH misspecification and drift. R_t~0.4 at k=3 confirms the reward is
+  genuinely wrong there while marginal coverage of the DEPLOYED policy still holds.
+- **Verdict:** Plan's Outcome A -- linear/Bayesian-REX VaR bound is marginally
+  robust to drift, but its risk-RANKING breaks. Consistent with linear reward not
+  over-optimising (Plan 01): the deployed policy's value is bounded honestly, so
+  marginal coverage holds; ranking of ALTERNATIVES breaks because the projected
+  posterior can't represent the drift's null(P) component.
+- **Next (user-agreed):** the dangerous quadrant (tight + wrong MARGINAL coverage)
+  most likely needs the MLP ensemble (over-optimisation -> confidently wrong about
+  the deployed policy itself). Build the MLP-ensemble conservative-bound test.
+Figs: fig1_coverage, fig2_quadrant. PG2 finite-sample baseline (k=6 lam=0 ~0.90) reproduced.
