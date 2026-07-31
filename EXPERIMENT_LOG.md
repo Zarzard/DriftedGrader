@@ -616,3 +616,34 @@ posterior-in-loop; deployed pi_t = Gibbs(posterior-mean reward); coverage vs cur
   most likely needs the MLP ensemble (over-optimisation -> confidently wrong about
   the deployed policy itself). Build the MLP-ensemble conservative-bound test.
 Figs: fig1_coverage, fig2_quadrant. PG2 finite-sample baseline (k=6 lam=0 ~0.90) reproduced.
+
+## 2026-07-31 — Stage P2 (MLP-ensemble conservative bound): HG4 inversion FAILS for neural ensembles
+
+MLP init-diversity ensemble (K=5, full phi), conservative bound mean-lam*std, 10 seeds:
+  drift breadth | rank_final R_cons R_mean pen_final pen-R_corr
+  NONE  onpolicy|   1.000    0.193  0.191   6.86      +0.515
+  SAT   onpolicy|   0.888    0.285  0.282   6.13      +0.283
+  SAT   broad   |   0.928    0.106  0.108   4.98      +0.122
+- rank_corr ROBUST (0.89-1.00) under drift -- NO ranking collapse (unlike linear k=3),
+  because the MLP is full-phi (well-specified inputs).
+- pen-R corr POSITIVE everywhere -> **HG4 inversion does NOT hold** for init-diversity
+  MLP ensembles: the conservative penalty does NOT shrink as regret grows. Contrast
+  with the LINEAR BOOTSTRAP ensemble (HG0: disagreement falls as data accumulates ->
+  penalty would invert). **The 'safety mechanism inverts' story is specific to
+  bootstrap-diversity; init-diversity neural ensembles (what real RLHF uses) track
+  drift instead.** Reassuring for real RLHF, contradicts Plan 02 Section 1.4's fear.
+- R_cons == R_mean: the mean-lam*std penalty is inert for policy selection here.
+
+### PLAN 02 CONSOLIDATED VERDICT (P0-P2)
+- HG0 supported (linear bootstrap: disagreement falls, regret rises, -0.318).
+- HG1/HG2/HG3 KILLED: linear posterior marginal coverage ROBUST under drift
+  (over-covers, tight+covered = healthy quadrant). No dangerous quadrant.
+- REAL FINDING 1: linear/Bayesian-REX RANKING validity collapses/inverts under
+  misspec+drift (rank_corr 0.86->-0.30) while marginal coverage holds (Section 4.1).
+- REAL FINDING 2: HG4 penalty-inversion is diversity-source-dependent; fails for
+  init-diversity neural ensembles (the practical case).
+- Per plan Section 6.2 we are in Outcome A (bounds marginally robust) + ranking-break
+  + HG4-reassurance -> P3 (inversion demo) and P4 (repair) are LESS motivated (no
+  inversion to demo, no marginal coverage collapse to repair). The honest paper:
+  "safety bounds are more robust to grader drift than feared; the one real failure is
+  RANKING validity under misspecification+drift." Deflationary + nuanced, like Plan 01.
