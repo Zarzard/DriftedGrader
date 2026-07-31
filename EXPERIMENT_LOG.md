@@ -647,3 +647,40 @@ MLP init-diversity ensemble (K=5, full phi), conservative bound mean-lam*std, 10
   inversion to demo, no marginal coverage collapse to repair). The honest paper:
   "safety bounds are more robust to grader drift than feared; the one real failure is
   RANKING validity under misspecification+drift." Deflationary + nuanced, like Plan 01.
+
+## 2026-07-31 — Stage P6 / HG7 (capacity amplification): NULL
+
+Updated-plan § HG7: does higher reward-model CAPACITY amplify the coverage failure
+(fit the pooled grader MIXTURE better while covering the CURRENT grader worse)?
+Last-layer Laplace over an MLP trunk refit each round; drift-attributable drop =
+C(lam=0)-C(lam=.4) paired by seed; pooled held-out log-loss = second axis. 8 seeds.
+      cap | C(λ=0) C(λ=.4)  drop | pooledLL_0 pooledLL_.4 | rank_.4   K_.4
+   linear |  0.792  1.000  -0.208 |   0.587      0.599    |  1.000    0.002
+   mlp_32 |  0.979  1.000  -0.021 |   0.437      0.475    |  0.938   25.09
+  mlp_128 |  1.000  1.000  +0.000 |   0.444      0.473    |  1.000  318.63
+- Mechanism axis 1 CONFIRMED: pooled log-loss FALLS with capacity (0.59->0.44) --
+  higher capacity does fit the pooled mixture better.
+- Mechanism axis 2 FAILS: the coverage drop does NOT increase with capacity; it
+  VANISHES (-0.208 -> -0.021 -> +0.000). Drift never lowers coverage (drop <= 0
+  throughout; drift TIGHTENS the settled posterior). HG7's own criterion ("drop
+  INCREASES with capacity") is falsified.
+- WHY high-cap coverage is perfect: it is VACUOUS. Posterior width K_t (trace cov)
+  blows up 0.004 -> 33 -> 331 (~10^5x). The last-layer Laplace over the trunk goes
+  slack; the lower bound is uninformative, so it "can't miss". Neither the danger
+  (collapse) NOR a useful tight bound appears at high capacity. The only informative
+  regime is linear, where λ=0 coverage is the finite-sample reference (0.79) and
+  drift only tightens it. **HG7 NULL.**
+
+## 2026-07-31 — HG0 recomputed as paired-by-seed difference (updated-plan reframe)
+
+The updated plan reframes HG0 as a paired difference d_s = rho_SAT(s) - rho_NONE(s)
+of Spearman(disagreement, R_t), 40 paired seeds, lam=0.1:
+  SAT rho  = -0.318 [-0.436,-0.139]   (CI excludes 0)
+  NONE rho = -0.109 [-0.213,+0.132]   (CI includes 0)
+  PAIRED diff (SAT-NONE) = -0.213 [-0.396,-0.034]  (CI excludes 0) -> NEGATIVE, sig.
+- The §1.4 mechanism (under drift, disagreement FALLS as regret RISES -> more negative
+  correlation) is SUPPORTED: SAT is significantly more anti-correlated than NONE.
+- **PLAN-TEXT BUG:** the updated plan's HG0 table states the support condition as
+  "difference > 0". That is sign-INVERTED relative to its own §1.4 mechanism, which
+  predicts (and the data show) a NEGATIVE paired difference. Support should read
+  "difference < 0 with CI excluding 0" -- which holds. (Flagged pre-run; confirmed.)
