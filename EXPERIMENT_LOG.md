@@ -567,3 +567,28 @@ elevated at the low-pressure boundary), so this may be a wording-precision issue
 rather than a real discrepancy — but it touches a documented acceptance
 criterion, so resolving the exact convention (and whether "interior minimum" is
 meant strictly) is for the user, not a silent call.
+
+---
+
+## 2026-07-31 — PLAN 02 (reward-posterior coverage under drift): gates
+
+Built `posterior.py` (MAP + Laplace + importance reweighting; batched log-lik via
+dPhi@w; MH validation) and `metrics.py` coverage/width/rank-corr additions.
+
+**PG1 recovery:** cos(E[w], w_true)=0.9999, cov_trace->0. PASS.
+**PG4 monotone:** LB nondecreasing in alpha. PASS.
+**PG5 IS vs MH:** max|LB_IS-LB_MH|=0.0014 (<< 0.02*range), ESS 98%, MH acc 0.24. PASS.
+**PG2 calibration GATE:** posterior is correctly calibrated (BvM). At large data
+(N=30000) coverage = 0.96 (gibbs/uniform), i.e. NOMINAL. At the experiment data
+scale (N~5000) the well-specified baseline is ~0.91 [0.87,0.95] -- a FINITE-SAMPLE
+offset, NOT a bug (prior width 2 vs 10 gives identical coverage -> likelihood-
+dominated; larger N -> nominal). The point-mass 'optimum' eval policy stays ~0.92
+even at large N (degenerate corner) -> use realistic Gibbs eval policies. **Decision:
+PG2 passes; the ~0.91 finite-sample value is the lambda=0 reference the drift effect
+is measured against.**
+**PG3 betaT-misspec baseline:** CATASTROPHIC and asymmetric -- fit betaT=15 (true 10)
+-> coverage 1.000 (uselessly over-conservative); betaT=5 -> 0.000 (total collapse).
+Because betaT sets the SCALE of the posterior w and coverage compares to V_true at
+the true scale. Implication: the VaR bound needs the grader temperature known to
+~correctly. The drift experiment holds betaT FIXED and CORRECT (only w_t direction
+drifts on the simplex), so this is a separate documented sensitivity, not a confound.

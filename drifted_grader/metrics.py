@@ -145,6 +145,36 @@ def proj_blindspot_fraction(u_t: np.ndarray, P: np.ndarray) -> float:
     return min(1.0, max(0.0, frac))
 
 
+# --------------------------------------------------------------------------
+# Plan 02: reward-posterior coverage metrics (Section 4)
+# --------------------------------------------------------------------------
+def coverage_hit(v_true: float, lower_bound: float) -> int:
+    """1 if the true value clears the high-confidence lower bound (Section 4.1)."""
+    return int(v_true >= lower_bound)
+
+
+def bound_width(post_mean_value: float, lower_bound: float, range_t: float) -> float:
+    """W_t = (posterior mean value - LB) / range_t: how much the bound gives up to
+    be safe. Falling W_t while coverage falls = the dangerous quadrant (Section 4.2)."""
+    if range_t < 1e-12:
+        return float("nan")
+    return float((post_mean_value - lower_bound) / range_t)
+
+
+def rank_correlation(lower_bounds, true_values) -> float:
+    """Spearman rho between {LB_alpha(pi^j)} and {V_true(pi^j)} over a fixed set of
+    evaluation policies (Section 4.1). A bound that loses ranking validity is broken
+    for its actual use case (ranking policies by risk) even if marginal coverage holds."""
+    lb = np.asarray(lower_bounds, float)
+    tv = np.asarray(true_values, float)
+    if len(lb) < 3 or np.std(lb) < 1e-12 or np.std(tv) < 1e-12:
+        return float("nan")
+    # Spearman = Pearson on ranks
+    rl = np.argsort(np.argsort(lb)).astype(float)
+    rt = np.argsort(np.argsort(tv)).astype(float)
+    return float(np.corrcoef(rl, rt)[0, 1])
+
+
 def proj_angle(u_t: np.ndarray, P: np.ndarray) -> float:
     """Angle (radians in [0, pi/2]) between u_t and P's row space.
     0 => drift fully visible to the RM; pi/2 => drift entirely in the blind spot."""
