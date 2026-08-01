@@ -18,17 +18,22 @@ seeds**, and (optionally) sharpen the nonlinear-misspec axis.
 
 | Thing | Value |
 |---|---|
-| PEBBLE/B-Pref repo (runs here) | `/home/zifan/NoisyPbRL` — fork of `rll-research/BPref` |
-| Branch | `perfg_rew_hack` (Stage F drift code lives here) |
-| Research hub (analysis, tabular sim) | `/home/zifan/DriftedGrader` |
+| PEBBLE/B-Pref repo (drift runs) | GitHub `git@github.com:Zarzard/NeuralDriftedGrader.git` (fork of `rll-research/BPref`); on this box `/home/zifan/NoisyPbRL` |
+| Branch | `main` (Stage F drift code lives here) |
+| Research hub (analysis, tabular sim) | GitHub `git@github.com:Zarzard/DriftedGrader.git`; on this box `/home/zifan/DriftedGrader` |
 | Conda env (has mujoco/dmc2gym/metaworld + torch-cuda) | `bpref` → `/home/zifan/miniconda3/envs/bpref/bin/python` |
 | Headless MuJoCo | `MUJOCO_GL=egl` (required) |
 | Thread pinning per run | `OMP_NUM_THREADS=4 MKL_NUM_THREADS=4` (avoid BLAS oversubscription; ~12–16 single-runs fit 24 cores) |
 | Throughput (state-based, single run) | ~100–160 env-steps/s → a 300k run ≈ 30–60 min; 500k ≈ 1–2 h. GPU is NOT the bottleneck (tiny MLPs); CPU/env-stepping is. |
 
-**IMPORTANT — push before CHPC.** The Stage F code on `perfg_rew_hack` is currently
-committed locally (see §4) but must be **pushed to origin** so the cluster can pull.
-The `DriftedGrader` analysis code lives in that repo; push it too.
+**Clone both repos on the cluster.** The PEBBLE repo produces the runs; this analysis
+repo analyses them. Both are pushed and current (branch `main`):
+```bash
+git clone git@github.com:Zarzard/NeuralDriftedGrader.git   # PEBBLE + Stage F drift code
+git clone git@github.com:Zarzard/DriftedGrader.git         # tabular sim + analysis (stageF_ranking.py)
+```
+The `/home/zifan/...` paths in §5 commands are this-box examples — substitute your clone
+locations on the cluster (the PEBBLE clone dir is `NeuralDriftedGrader/`, not `NoisyPbRL/`).
 
 ---
 
@@ -101,7 +106,7 @@ exist. `use_wandb` defaults false; `eval.csv`/`train.csv` are written regardless
 
 ## 4. Code map
 
-**`NoisyPbRL` (branch `perfg_rew_hack`) — the drift integration:**
+**`NeuralDriftedGrader` (a.k.a. local `NoisyPbRL`, branch `main`) — the drift integration:**
 - `drifting_reward_model.py` — `DriftingRewardModel(RewardModel)`. Overrides `get_label`
   ONLY: replaces per-step env reward with `g_t = w_t·φ(s,a)`, then calls parent
   byte-identically. `drift_step()` advances `w_t` (SAT/EXO/REPLAY/NONE) once per feedback

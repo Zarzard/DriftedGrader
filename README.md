@@ -65,7 +65,7 @@ runs/  figs/             # generated outputs (git-ignored)
 requirements.txt
 ```
 
-The **neural-scale (Stage F)** experiments run in a *separate* repo (`NoisyPbRL`, a fork
+The **neural-scale (Stage F)** experiments run in a *separate* repo (`NeuralDriftedGrader`, a fork
 of B-Pref/PEBBLE) using this package for analysis — see
 [`md_files/STAGE_F_HANDOVER.md`](md_files/STAGE_F_HANDOVER.md).
 
@@ -79,7 +79,7 @@ CPU-only; Python 3.8+.
 pip install -r requirements.txt      # numpy, scipy, pandas, matplotlib, pytest
 ```
 
-`torch` is **not** needed here (only for the Stage F PEBBLE integration in `NoisyPbRL`).
+`torch` is **not** needed here (only for the Stage F PEBBLE integration in `NeuralDriftedGrader`).
 
 ---
 
@@ -137,7 +137,7 @@ Full definitions in `md_files/PAPER_DRAFT.md` §2.
 ## Neural-scale (Stage F)
 
 The scale experiments (drifting grader integrated into real PEBBLE on Metaworld) live in
-the `NoisyPbRL` repo and export `ranking_export.pkl`, which `analysis/stageF_ranking.py`
+the `NeuralDriftedGrader` repo and export `ranking_export.pkl`, which `analysis/stageF_ranking.py`
 analyses with this package's posterior/projection/ranking machinery. To reproduce or
 scale up (multiple Metaworld tasks × seeds on a cluster), follow
 [`md_files/STAGE_F_HANDOVER.md`](md_files/STAGE_F_HANDOVER.md) — it is self-contained
