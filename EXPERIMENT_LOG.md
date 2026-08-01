@@ -684,3 +684,49 @@ of Spearman(disagreement, R_t), 40 paired seeds, lam=0.1:
   "difference > 0". That is sign-INVERTED relative to its own §1.4 mechanism, which
   predicts (and the data show) a NEGATIVE paired difference. Support should read
   "difference < 0 with CI excluding 0" -- which holds. (Flagged pre-run; confirmed.)
+
+## 2026-08-01 — Stage F (Metaworld PEBBLE, button-press-v2) + Bayesian-REX decision demo
+
+Reproduction gate: metaworld_button-press-v2 vanilla PEBBLE reproduces (100% success);
+PEBBLE-on-DMC (walker) does NOT learn (SAC-true=950, PEBBLE proxy never climbs) --
+not our mods (reward path byte-identical to upstream). So Stage F = Metaworld only.
+
+DriftingRewardModel (overrides get_label -> teacher scores by w_t.phi(s,a), random
+projection features d=6, DriftSat lam=1.0). NONE vs SAT x 2 seeds, 300k steps.
+
+Dynamics (at scale): NONE w_dist=0, J_init==J_current. SAT w_dist 0.52-0.65 (argmax
+flips 5->3 one seed), J_current collapses 0.94->0.57 far below J_init 0.82. Ordering-
+changing drift + grader-tracking failure CONFIRMED at neural scale. Caveats: J gap is
+partly mechanical to SAT; task competence untestable (synthetic grader decoupled from
+button-press, success=0 expected).
+
+Ranking-validity at scale (stageF_ranking.py; eval policies = achieved profiles {m_t}):
+  cond   NONE   SAT
+  full  +1.00  +0.87     (well-spec linear: robust)
+  kproj +0.88  +0.55     (random k=3 misspec: degrades under drift)
+  adv   +0.86  +0.21     (k=3 blind to drift dir: degrades to ~random)
+  small -0.48  -0.45     (tiny nonlinear MLP ensemble: INCONCLUSIVE -- anti-ranks even
+                          under NONE; implementation artifact, needs bigger ensemble)
+Selection regret (B-REX decision at scale, argmax-VaR over {m_t}):
+  cond   NONE   SAT
+  full  0.000  0.002     kproj 0.084 0.212     adv 0.042 0.259
+=> well-spec selection robust to drift; misspec selection regret 2.5-6x under drift.
+MUTED vs tabular (no inversion; regret 0.26 not 0.64) -- fits the deflationary arc.
+
+Bayesian-REX decision demo (TABULAR, brex_demo.py; the money shot). Select argmax-VaR
+policy from a diverse pool; measure selection regret + violation. 4 cells x 20 seeds:
+     spec drift | regret_brex regret_naive wrong_pick violation
+ well-spec NONE |    0.000       0.000       0.000      0.082
+ well-spec  SAT |    0.039       0.035       0.132      0.000
+   misspec NONE |    0.229       0.218       0.314      0.009
+   misspec  SAT |    0.640       0.654       0.909      0.000
+=> Under misspec+drift B-REX picks the WRONG policy 91% of the time (regret 0.64,
+   near worst-case), yet violation~0 (marginal coverage of the CHOSEN policy holds) and
+   regret_brex ~= regret_naive (VaR conservatism gives NO protection). The clean thesis:
+   the bound is honest about "is THIS policy safe?" and broken about "WHICH policy?".
+
+CONSOLIDATED THESIS (tabular sharp, scale muted): grader drift leaves the marginal
+certification of a fixed policy honest, but corrupts policy SELECTION under
+representational misspecification -- dramatically in the tabular/closed-form limit,
+mutedly-but-measurably at neural (single-task Metaworld) scale. Full handover for the
+CHPC scale-up: STAGE_F_HANDOVER.md.
