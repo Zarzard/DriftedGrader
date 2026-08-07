@@ -1,0 +1,39 @@
+27 jobs
+done ('tau002', 'S1', 1)
+done ('tau002', 'S0', 2)
+done ('tau002', 'S0', 0)
+done ('default', 'S0', 1)
+done ('default', 'S1', 1)
+done ('tau002', 'S0', 1)
+done ('default', 'S1', 0)
+done ('default', 'S0', 0)
+done ('default', 'S1', 2)
+done ('tau002', 'S1', 0)
+done ('default', 'S5', 2)
+done ('default', 'S0', 2)
+done ('default', 'S5', 0)
+done ('default', 'S5', 1)
+done ('np50', 'S0', 0)
+done ('np50', 'S0', 1)
+done ('tau002', 'S1', 2)
+done ('np50', 'S0', 2)
+done ('np50', 'S1', 2)
+done ('tau002', 'S5', 1)
+done ('np50', 'S1', 0)
+done ('np50', 'S5', 0)
+done ('tau002', 'S5', 2)
+done ('tau002', 'S5', 0)
+done ('np50', 'S1', 1)
+done ('np50', 'S5', 2)
+done ('np50', 'S5', 1)
+variant   sched G_auc mean                       per-seed    R_auc
+default   S1       -0.1352         [ 0.024 -0.001 -0.429]   0.1189
+default   S5        5.4321         [ 7.144  9.544 -0.392]   5.1873
+tau002    S1        0.0132            [0.024 0.001 0.014]   0.0369
+tau002    S5        4.0726            [2.642 9.524 0.051]   5.1527
+np50      S1       -0.0163         [-0.015  0.128 -0.162]   0.0021
+np50      S5        6.1505         [ 9.953  8.656 -0.158]   4.4140
+S0 seed 0: r1=23.18 r5=22.29 r20=22.88 r40=23.16 (uniform baseline ~ -8.5)
+S0 seed 1: r1=23.22 r5=23.22 r20=23.21 r40=23.21 (uniform baseline ~ -8.5)
+S0 seed 2: r1=23.20 r5=23.15 r20=22.57 r40=22.91 (uniform baseline ~ -8.5)
+DONE

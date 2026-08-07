@@ -1,0 +1,28 @@
+host=notch308 out=/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/runs/e1
+multiprocessing.pool.RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/uufs/chpc.utah.edu/common/home/dbrown-group1/zifan/miniconda3/envs/graderdrift/lib/python3.11/multiprocessing/pool.py", line 125, in worker
+    result = (True, func(*args, **kwds))
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/src/graderdrift/experiments/e1.py", line 32, in _run_one
+    run_a0("S0", seed, K=K, run_dir=run_dir)
+  File "/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/src/graderdrift/experiments/a0_run.py", line 97, in run_a0
+    logger.log_row(round=k, seed=seed, schedule=schedule_name, v_true=v,
+  File "/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/src/graderdrift/logging_io.py", line 82, in log_row
+    raise KeyError(f"unknown log fields {sorted(unknown)}; extend ROW_FIELDS first")
+KeyError: "unknown log fields ['op_temp_inv_raw', 'op_temp_inv_std']; extend ROW_FIELDS first"
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/src/graderdrift/experiments/e1.py", line 57, in <module>
+    run_e1(a.out, _parse_seeds(a.seeds), K=a.K, nproc=a.nproc)
+  File "/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/graderdrift/src/graderdrift/experiments/e1.py", line 43, in run_e1
+    for s in pool.imap_unordered(_run_one, jobs):
+  File "/uufs/chpc.utah.edu/common/home/dbrown-group1/zifan/miniconda3/envs/graderdrift/lib/python3.11/multiprocessing/pool.py", line 873, in next
+    raise value
+KeyError: "unknown log fields ['op_temp_inv_raw', 'op_temp_inv_std']; extend ROW_FIELDS first"

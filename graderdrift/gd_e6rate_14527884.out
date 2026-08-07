@@ -1,0 +1,107 @@
+0 jobs
+E6 gradient-coupled 2x2 @ eta=1deg (G_auc vs S0, paired; 20 seeds):
+cell                    G_auc               90% CI
+coupled+persistent      0.307 [ +0.146, +0.471]
+coupled+churn           0.050 [ +0.016, +0.085]
+random+persistent      -0.030 [ -0.090, +0.026]
+random+churn           -0.048 [ -0.108, +0.010]
+H-A (coupled+persistent largest):
+  G(cp)=0.307 largest? holds
+  coupled>random (persistent): +0.337 CI[+0.179,+0.506] (excludes 0)
+H-B (churn attenuates coupled more than random):
+  coupled attenuation=+0.257, random attenuation=+0.018
+  difference-in-differences=+0.239 CI[+0.073,+0.405] (excludes 0 -> churn resets coupled capture)
+80 jobs
+done ('E6cp4', 10)
+done ('E6cp4', 7)
+done ('E6cp4', 4)
+done ('E6cp4', 1)
+done ('E6cp4', 5)
+done ('E6cp4', 2)
+done ('E6cp4', 6)
+done ('E6cp4', 8)
+done ('E6cp4', 9)
+done ('E6cp4', 3)
+done ('E6cp4', 14)
+done ('E6cp4', 16)
+done ('E6cp4', 13)
+done ('E6cp4', 12)
+done ('E6cp4', 18)
+done ('E6cp4', 17)
+done ('E6cp4', 0)
+done ('E6cp4', 19)
+done ('E6cp4', 15)
+done ('E6cc4', 1)
+done ('E6cc4', 3)
+done ('E6cp4', 11)
+done ('E6cc4', 4)
+done ('E6cc4', 5)
+done ('E6cc4', 7)
+done ('E6cc4', 10)
+done ('E6cc4', 11)
+done ('E6cc4', 15)
+done ('E6cc4', 13)
+done ('E6cc4', 16)
+done ('E6cc4', 0)
+done ('E6cc4', 2)
+done ('E6cc4', 18)
+done ('E6cc4', 19)
+done ('E6rp4', 0)
+done ('E6rp4', 1)
+done ('E6rp4', 2)
+done ('E6rp4', 3)
+done ('E6rp4', 4)
+done ('E6rp4', 5)
+done ('E6cc4', 6)
+done ('E6cc4', 9)
+done ('E6cc4', 12)
+done ('E6cc4', 8)
+done ('E6cc4', 14)
+done ('E6cc4', 17)
+done ('E6rp4', 8)
+done ('E6rp4', 9)
+done ('E6rp4', 10)
+done ('E6rp4', 12)
+done ('E6rp4', 11)
+done ('E6rp4', 13)
+done ('E6rp4', 15)
+done ('E6rp4', 14)
+done ('E6rp4', 6)
+done ('E6rp4', 7)
+done ('E6rc4', 2)
+done ('E6rc4', 3)
+done ('E6rc4', 5)
+done ('E6rc4', 6)
+done ('E6rc4', 4)
+done ('E6rc4', 7)
+done ('E6rc4', 8)
+done ('E6rc4', 9)
+done ('E6rp4', 16)
+done ('E6rp4', 17)
+done ('E6rp4', 18)
+done ('E6rc4', 0)
+done ('E6rp4', 19)
+done ('E6rc4', 1)
+done ('E6rc4', 12)
+done ('E6rc4', 13)
+done ('E6rc4', 10)
+done ('E6rc4', 11)
+done ('E6rc4', 15)
+done ('E6rc4', 14)
+done ('E6rc4', 16)
+done ('E6rc4', 17)
+done ('E6rc4', 19)
+done ('E6rc4', 18)
+E6 gradient-coupled 2x2 @ eta=4deg (G_auc vs S0, paired; 20 seeds):
+cell                    G_auc               90% CI
+coupled+persistent      2.597 [ +1.937, +3.281]
+coupled+churn           0.304 [ +0.184, +0.435]
+random+persistent       0.287 [ +0.058, +0.555]
+random+churn            0.045 [ -0.059, +0.154]
+H-A (coupled+persistent largest):
+  G(cp)=2.597 largest? holds
+  coupled>random (persistent): +2.309 CI[+1.515,+3.104] (excludes 0)
+H-B (churn attenuates coupled more than random):
+  coupled attenuation=+2.292, random attenuation=+0.243
+  difference-in-differences=+2.050 CI[+1.300,+2.785] (excludes 0 -> churn resets coupled capture)
+DONE

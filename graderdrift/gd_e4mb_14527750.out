@@ -1,0 +1,16 @@
+H_MB (model-based, oracle-free): in-sample adjR2=0.003  leave-one-TYPE-out CV=+0.003  Spearman=-0.015  schedule-mean adjR2=0.330
+(compare: linear H0-H2.5 CV all <= 0; oracle H3 CV = 0.91)
+=== equivalence: point estimates + H2-H2.5 CI ===
+leave-one-SCHEDULE-out CV R^2 (same footing) | schedule-mean adj R^2:
+  H0                     CV=+0.002   sched-mean adjR2=+0.376
+  H1                     CV=-0.087   sched-mean adjR2=+0.375
+  H2.5 (oracle-free)     CV=-0.062   sched-mean adjR2=+0.487
+  H2 (needs w*)          CV=-0.040   sched-mean adjR2=+0.647
+  H3 (oracle)            CV=+0.913   sched-mean adjR2=+0.974
+schedule-cluster bootstrap increments (90% CI):
+  H2 - H0     (0.040458438155077964, 0.16796605642001652)
+  H2.5 - H1   (0.008639178836394592, 0.08925976055036748)
+  H2.5 - H0   (0.017943914709962934, 0.17981744819261136)
+  H2 - H2.5   (-0.035547726166379086, 0.052109084444235294)   (includes 0 => dropping w* costs no detectable generalization)
+  n_schedules=34, seeds=[0]..19
+DONE
