@@ -51,13 +51,15 @@ runs take ~2 days and are analysed for weeks afterwards.
 
 # 2. Getting the code and data
 
-## 2.1 Code — ASK THE USER, DO NOT CLONE
+## 2.1 Code -- clone the `tacc-handover` branch
 
-The GitHub remote is `https://github.com/Zarzard/DriftedGrader.git`, but **the entire `armorm/`
-directory is untracked and is not on GitHub**. Cloning gives you a repo without the experiment.
+```
+git clone -b tacc-handover https://github.com/Zarzard/DriftedGrader.git
+```
 
-Ask the user to transfer the following from CHPC
-(`/uufs/chpc.utah.edu/common/home/u1520755/DriftedGrader/armorm/`). This is the minimum set:
+`main` does NOT contain the experiment: `armorm/` was untracked until this branch. Use the branch.
+
+What you get, which is the transitive import closure of `stage1.py` plus the three launchers:
 
 ```
 stage1.py              the experiment driver -- everything runs through this
@@ -72,33 +74,37 @@ s1uf18a.slurm          the UltraFeedback launcher (headline arms)
 s1uf18b.slurm          the UltraFeedback launcher (bulk replication)
 ```
 
-If `stage1.py` fails on an import you do not recognise, ask for the named file rather than
-guessing — several small modules sit next to it.
+That list was computed, not guessed. If an import still fails, ask for the named file rather than
+substituting your own -- several small modules sit beside these in the source tree.
 
-## 2.2 The `pylibs` shim — REQUIRED, EASY TO MISS
+## 2.2 Three packages the scoring environment does not pip-install
 
-`peft` is **not** installed by pip in the scoring environment. It is supplied by a directory added
-to `PYTHONPATH`:
+On CHPC these come from a `pylibs` directory bolted on via `PYTHONPATH`. Do not reproduce that --
+install them properly:
 
 ```
-/uufs/chpc.utah.edu/common/home/dbrown-group1/zifan/graderdrift_runs/pylibs   (31 MB)
+pip install peft==0.13.2 sentencepiece
 ```
 
-You can either copy that directory to `$WORK` and keep using `PYTHONPATH`, or simply
-`pip install peft==0.13.2` into the scoring environment and drop the `PYTHONPATH` entry. Installing
-it properly is cleaner. Verify with `python -c "import peft; print(peft.__version__)"` -> `0.13.2`.
+`peft` supplies LoRA and is imported directly by `stage1.py`. `sentencepiece` is needed by the
+tokenizer, and `stage1.py` asserts it imports at startup. A third, `openai`, also lives in that
+directory but is imported **inside a function** on the API-judge path, which the loop never takes;
+`import uf_gold` succeeds without it. Add it only if you later run the API-judge code.
+
+Verify: `python -c "import peft, sentencepiece; print(peft.__version__)"` -> `0.13.2`.
 
 ## 2.3 Data
 
-**UltraFeedback prompt pool** — copy these two from CHPC (11 MB total), there is no download:
+**UltraFeedback prompt pool** -- in the repo at `data/uf_pool/` (11 MB), nothing to copy:
 
 ```
-graderdrift_runs/bon_pilot/uf_armorm.npz              (0.5 MB)
-graderdrift_runs/bon_pilot/uf_armorm_responses.json   (10.4 MB)
+data/uf_pool/uf_armorm.npz              (0.5 MB)
+data/uf_pool/uf_armorm_responses.json   (10.4 MB)
 ```
 
-`uf_gold.py` has a hardcoded path constant `POOL` near line 39 pointing at the CHPC location.
-**Edit it to your `$WORK` path.** This is one of the required changes.
+Both files must stay together with these names: the loader derives the JSON path from the NPZ path
+by substitution. `uf_gold.py` has a hardcoded `POOL` constant near line 39 still pointing at CHPC.
+**Edit it to your clone's `data/uf_pool/uf_armorm.npz`.** This is one of the required changes.
 
 **GSM8K** downloads from HuggingFace automatically: `openai/gsm8k`, config `main`.
 
@@ -170,7 +176,7 @@ A100 PCIe is **40 GB**. At 0.90 vLLM will try to claim ~43 GB and fail to start.
 in `stage1.py` and lower it. This shrinks the KV cache and will slow generation — that is expected
 and is what the probe in section 5 measures.
 
-**(b) `uf_gold.py` `POOL` path** -> your `$WORK` copy of `uf_armorm.npz` (see 2.3).
+**(b) `uf_gold.py` `POOL` path** -> `data/uf_pool/uf_armorm.npz` in your clone (see 2.3).
 
 **(c) Output directory.** The slurm scripts set `D=$Z/graderdrift_runs/stage1` where `$Z` is a CHPC
 path. Point `$Z` at `$WORK`. Each 12-round arm writes ~1.9 GB of LoRA adapters; a full campaign is
@@ -297,7 +303,8 @@ is ~1.0.
 
 # 10. Definition of done for the port
 
-1. Both environments build and `torch.cuda.get_arch_list()` contains `sm_80`.
+1. Both environments build, `torch.cuda.get_arch_list()` contains `sm_80`, and
+   `import peft, sentencepiece` succeeds in the scoring environment.
 2. Four models and GSM8K are cached under `$WORK`, and a job runs with `HF_HUB_OFFLINE=1`.
 3. The probe completes 2-3 rounds with round-0 accuracy in 0.76-0.79.
 4. Measured hours per round reported, and the 48-hour decision made with the user.
