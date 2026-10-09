@@ -131,33 +131,28 @@ lazy download inside a job**. After downloading, set `HF_HUB_OFFLINE=1` and
 Two separate environments are required. They cannot be merged: generation needs a recent vLLM and
 torch, scoring needs an older torch that the reward-model code depends on.
 
-## 3.1 `bpref` — scoring, grading, DPO training
+Requirements files are in the repo under `env/`. Install from those, not from the version lists
+that used to be here.
 
 ```
-python 3.8          (3.10 is acceptable if 3.8 is unavailable; test carefully)
-torch 2.4.1         CUDA 12.x build
-transformers 4.45.2
-accelerate 1.0.1
-datasets 2.21.0
-numpy 1.24.3
-scipy 1.10.1
-safetensors 0.5.3
-peft 0.13.2         (see 2.2)
-sentencepiece
+pip install -r env/requirements-bpref.txt     # scoring, grading, DPO   (python 3.8.20 at source)
+pip install -r env/requirements-vllmgen.txt   # generation only         (python 3.11.16 at source)
 ```
 
-`stage1.py` asserts `import sentencepiece` succeeds at startup — if it is missing the job exits
-with a clear message.
+`requirements-bpref.txt` is a minimal set derived from the imports in the shipped code, **not** a
+pip freeze. The source machine's scoring environment is a shared general-purpose one: its real
+freeze is 127 packages including `metaworld`, `dmc2gym` and 23 conda `@ file:///croot/...` entries
+that pip cannot resolve. Both full freezes are committed as `env/freeze-*-FULL.txt` for reference
+only -- **do not install them**.
 
-## 3.2 `vllmgen` — generation only
+`requirements-vllmgen.txt` pins `vllm==0.30.0` and lets it pull torch and the nvidia stack itself.
+The full freeze pins exact nvidia builds for CUDA 13.0 that will likely not match the cuda module
+you load.
 
-```
-python 3.11
-torch 2.13.0        CUDA 13.0 build
-vllm 0.30.0
-transformers 5.17.0
-numpy 2.3.5
-```
+Two notes on torch. The scoring environment's source build is 2.4.1+cu121; install whichever cu12x
+wheel matches your loaded cuda module. A100 is sm_80, which every cu12 build covers. And `openai`
+and `anthropic` are commented out in the scoring requirements: `uf_gold.py` imports them inside a
+function on the API-judge path, which the closed loop never reaches.
 
 **Architecture check.** A100 is compute capability **sm_80**, which both environments support
 natively. Verify after install:

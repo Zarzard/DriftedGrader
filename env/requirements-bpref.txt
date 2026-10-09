@@ -1,0 +1,26 @@
+# Scoring / grading / DPO environment.  python 3.8.20 on the source machine.
+#
+# This is a MINIMAL set derived from the imports in the transferred code, not a pip freeze.
+# The source environment is a shared general-purpose one: its full freeze (freeze-bpref-FULL.txt)
+# carries 127 packages including metaworld, dmc2gym and 23 conda "@ file:///croot/..." entries
+# that pip cannot resolve.  Do not try to install that file.
+#
+#   pip install -r requirements-bpref.txt
+#
+# torch must match your CUDA. The source build is 2.4.1+cu121; on Lonestar6 install the cu12x
+# wheel for whichever cuda module you load. A100 is sm_80, which every cu12 build covers.
+torch==2.4.1
+transformers==4.45.2
+tokenizers==0.20.3
+huggingface_hub==0.25.2
+accelerate==1.0.1
+datasets==2.21.0
+safetensors==0.5.3
+peft==0.13.2
+sentencepiece==0.2.0
+numpy==1.24.4
+scipy==1.10.1
+# Only needed if you run the API-judge path (uf_gold.py imports these inside a function;
+# the closed-loop experiment never reaches it).
+# openai
+# anthropic

@@ -1,0 +1,12 @@
+# Generation-only environment.  python 3.11.16 on the source machine.
+#
+# Kept SEPARATE from the scoring environment on purpose: stage1.py shells out to this
+# interpreter because a 3.8 PYTHONPATH shadows 3.11 and dies on pydantic_core._pydantic_core.
+#
+#   pip install -r requirements-vllmgen.txt
+#
+# vllm pulls torch and the whole nvidia-* stack itself; pinning vllm alone is enough and is more
+# likely to resolve than the 200-line freeze (freeze-vllmgen-FULL.txt), which pins exact nvidia
+# builds for CUDA 13.0 that may not match the cuda module you load.
+vllm==0.30.0
+transformers==5.17.0
