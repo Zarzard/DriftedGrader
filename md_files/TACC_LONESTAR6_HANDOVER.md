@@ -69,13 +69,15 @@ extract.py             answer extraction
 pairmetric.py          pair statistics
 verifiers.py           GSM8K answer checking
 vintage_score.py       grader scoring helpers
+vllm_gen.py            the generation worker -- run by SUBPROCESS, not imported
 s1gsm12.slurm          the GSM8K launcher (adapt this; it is the newest and cleanest)
 s1uf18a.slurm          the UltraFeedback launcher (headline arms)
 s1uf18b.slurm          the UltraFeedback launcher (bulk replication)
 ```
 
-That list was computed, not guessed. If an import still fails, ask for the named file rather than
-substituting your own -- several small modules sit beside these in the source tree.
+That list is the transitive import closure plus `vllm_gen.py`, which no import scan finds because
+`stage1.py` launches it with `subprocess.run`, under a *different Python*. If an import still
+fails, ask for the named file rather than substituting your own.
 
 ## 2.2 Three packages the scoring environment does not pip-install
 
@@ -169,7 +171,35 @@ PTX JIT, so a missing exact match is not necessarily fatal — but sm_80 should 
 
 ---
 
-# 4. Required changes (exactly three, plus the queue block)
+# 4. Required changes
+
+## 4.0 The two-interpreter call, which is the fiddly one
+
+`stage1.py` does not import vLLM. It writes a spec file and shells out:
+
+```
+subprocess.run([VLLM_PY, "vllm_gen.py", spec, out], env=...)
+```
+
+`VLLM_PY` is a hardcoded absolute path to the *generation* environment's interpreter, because the
+two environments cannot share a process -- `PYTHONPATH` from the 3.8 scoring env shadows the 3.11
+generation env and fails with `No module named pydantic_core._pydantic_core`. The call also puts
+`vllmgen/bin` on `PATH` (flashinfer needs it) and redirects several caches.
+
+Everything with a CHPC path in it must be repointed:
+
+| file | line | what |
+|---|---|---|
+| `stage1.py` | ~235 | `VLLM_PY` -- absolute path to your vllmgen python |
+| `stage1.py` | ~260 | `Z` -- base dir for the vLLM scratch dir and cache roots |
+| `uf_gold.py` | ~38 | base dir, and `POOL` just below it |
+| `vintage_score.py` | ~44, ~113 | pool dir and base dir (only if you run grader scoring) |
+
+`grep -rn /uufs/chpc armorm/*.py` finds all of them. The scratch dir
+(`{Z}/graderdrift_runs/vllm_bench`) and the cache dirs under `{Z}/cache` must exist or be
+creatable -- put them in `$WORK`, not `$SCRATCH`.
+
+## 4.1 The other changes (plus the queue block)
 
 **(a) `gpu_memory_utilization` 0.90 -> 0.80.** The experiment runs on 48 GB GPUs elsewhere; the
 A100 PCIe is **40 GB**. At 0.90 vLLM will try to claim ~43 GB and fail to start. Find the setting
